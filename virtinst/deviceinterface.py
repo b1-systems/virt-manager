@@ -199,7 +199,7 @@ class VirtualNetworkInterface(VirtualDevice):
     _XML_PROP_ORDER = [
         "bridge", "network", "source_dev", "source_mode",
         "macaddr", "target_dev", "model", "virtualport",
-        "filterref"]
+        "filterref", "filterref_parameter_name"]
 
     type = XMLProperty(xpath="./@type",
                        default_cb=lambda s: s.TYPE_BRIDGE)
@@ -235,6 +235,9 @@ class VirtualNetworkInterface(VirtualDevice):
     model = XMLProperty(xpath="./model/@type")
     target_dev = XMLProperty(xpath="./target/@dev")
     filterref = XMLProperty(xpath="./filterref/@filter")
+    filterref_parameter_name = XMLProperty(xpath="./filterref/parameter/@name")
+    filterref_parameter_value = XMLProperty(xpath="./filterref/parameter/@value")
+        
 
 
 VirtualNetworkInterface.register_type()

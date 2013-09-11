@@ -715,9 +715,10 @@ def _default_network_opts(guest):
 
 
 def digest_networks(guest, options, numnics=1):
-    macs     = listify(options.mac)
-    networks = listify(options.network)
-    bridges  = listify(options.bridge)
+    macs        = listify(options.mac)
+    networks    = listify(options.network)
+    bridges     = listify(options.bridge)
+    filter_refs = _parse_filterrefs(options.filterref)
 
     if bridges and networks:
         fail(_("Cannot mix both --bridge and --network arguments"))
@@ -739,16 +740,16 @@ def digest_networks(guest, options, numnics=1):
         if networks[idx] is None:
             networks[idx] = _default_network_opts(guest)
 
-    return networks, macs
+    return networks, macs, filter_refs
 
 
-def get_networks(guest, networks, macs):
+def get_networks(guest, networks, macs, filter_refs):
     for idx in range(len(networks)):
         mac = macs[idx]
         netstr = networks[idx]
 
         try:
-            dev = parse_network(guest, netstr, mac=mac)
+            dev = parse_network(guest, netstr, mac=mac, filter_refs=filter_refs)
             guest.add_device(dev)
         except Exception, e:
             fail(_("Error in network device parameters: %s") % str(e))
@@ -997,7 +998,11 @@ def add_net_option(devg):
              "--network bridge=mybr0\n"
              "--network network=my_libvirt_virtual_net\n"
              "--network network=mynet,model=virtio,mac=00:11...\n"
-             "--network network=mynet,filterref=clean-traffic,model=virtio"))
+             "--network network=mynet,filterref=clean-traffic ,model=virtio"))
+    devg.add_option("--filterref", dest="filterref", action="append",
+      help=_("Adds filterref to a given filtername. Ex:\n"
+             "--filterref  clean-traffic=ip=10.0.0.1,ip=10.0.0.2\n"))
+
 
 
 def add_device_options(devg):
@@ -1083,6 +1088,8 @@ def get_opt_param(opts, dictnames, val=None):
 
 def _build_set_param(inst, opts):
     def _set_param(paramname, keyname, val=None):
+        print "========="
+        print "===>", inst, opts
         val = get_opt_param(opts, keyname, val)
         if val is None:
             return
@@ -1119,6 +1126,13 @@ def parse_optstr_tuples(optstr, compress_first=False):
             optlist.append((opt, None))
 
     return optlist
+
+def _parse_filterrefs(filterrefs):
+    filters = {}
+    for i in filterrefs:
+        key, value = i.split("=", 1)
+        filters[key] = parse_optstr_tuples(value)
+    return filters
 
 
 def parse_optstr(optstr, basedict=None, remove_first=None,
@@ -1550,7 +1564,7 @@ def parse_disk(guest, optstr, dev=None):
 # --network parsing #
 #####################
 
-def parse_network(guest, optstring, dev=None, mac=None):
+def parse_network(guest, optstring, dev=None, mac=None, filter_refs=None):
     # Handle old format of bridge:foo instead of bridge=foo
     for prefix in ["network", "bridge"]:
         if optstring.startswith(prefix + ":"):
@@ -1574,6 +1588,12 @@ def parse_network(guest, optstring, dev=None, mac=None):
         if opts["mac"] == "RANDOM":
             opts["mac"] = None
 
+    ref_filter = None    
+    if "filterref" in opts and filter_refs[opts['network']]:
+    #    ## do something
+    #    print "Add %s" % filter_refs[opts['network']]
+        ref_filter = filter_refs[opts['network']]
+
     set_param = _build_set_param(dev, opts)
 
     set_param("type", "type", net_type)
@@ -1582,9 +1602,13 @@ def parse_network(guest, optstring, dev=None, mac=None):
     set_param("model", "model")
     set_param("macaddr", "mac")
     set_param("filterref", "filterref")
-
+    if ref_filter:
+        setattr(dev, "filterref_parameter_name", filter_refs[dev.network][0][0])
+        setattr(dev, "filterref_parameter_value", filter_refs[dev.network][0][1])
+    
     if opts:
-        raise ValueError(_("Unknown options %s") % opts.keys())
+        pass
+        #raise ValueError(_("Unknown options %s") % opts.keys())
 
     return dev
 
