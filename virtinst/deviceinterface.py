@@ -22,7 +22,7 @@ import random
 
 from virtinst import util
 from virtinst import VirtualDevice
-from virtinst.xmlbuilder import XMLBuilder, XMLProperty
+from virtinst.xmlbuilder import XMLBuilder, XMLProperty, XMLChildProperty
 
 
 def _random_mac(conn):
@@ -63,6 +63,30 @@ class VirtualPort(XMLBuilder):
             xpath="./virtualport/parameters/@typeidversion", is_int=True)
     instanceid = XMLProperty(xpath="./virtualport/parameters/@instanceid")
 
+class _FilterRefParam(XMLBuilder):
+    _XML_ROOT_XPATH = "/domain/devices/interface/filterref/parameter"
+    name = XMLProperty("/filterref/parameter/@name")
+    value = XMLProperty("/filterref/parameter/@value")
+
+class FilterRef(XMLBuilder):
+    _XML_PROP_ORDER = ["filter", "_filterparams"]
+    _XML_ROOT_XPATH = "/domain/devices/interface/filterref"
+    filter = XMLProperty("./filterref/@filter")
+
+    def _get_filterparams(self):
+        return [(f.name, f.value) for f in self._filterparams]
+
+    def _set_filterparams(self, newparams):
+        for f in self._filterparams:
+            self._remove_child(f)
+        for f in newparams:
+            fp = _FilterRefParam(self.conn)
+            fp.name = f[0]
+            fp.value = f[1]
+            self._add_child(fp)
+
+    _filterparams = XMLChildProperty(_FilterRefParam)
+    filterparams = property(_get_filterparams, _set_filterparams)
 
 class VirtualNetworkInterface(VirtualDevice):
     virtual_device_type = VirtualDevice.VIRTUAL_DEV_NET
@@ -140,7 +164,8 @@ class VirtualNetworkInterface(VirtualDevice):
 
         self._random_mac = None
         self._default_bridge = None
-
+        self.filterref = FilterRef(self.conn, None, self._xml_node)
+        self.filterref.filterparams = []
 
     def _generate_default_bridge(self):
         ret = self._default_bridge
@@ -234,7 +259,6 @@ class VirtualNetworkInterface(VirtualDevice):
                               default_cb=_default_source_mode)
     model = XMLProperty(xpath="./model/@type")
     target_dev = XMLProperty(xpath="./target/@dev")
-    filterref = XMLProperty(xpath="./filterref/@filter")
 
 
 VirtualNetworkInterface.register_type()

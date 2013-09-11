@@ -193,8 +193,8 @@ def get_disks(guest, file_paths, disk_paths, size, sparse, need_storage):
 
 
 def get_networks(guest, options):
-    networks, macs = cli.digest_networks(guest, options)
-    cli.get_networks(guest, networks, macs)
+    networks, macs, filter_refs = cli.digest_networks(guest, options)
+    cli.get_networks(guest, networks, macs, filter_refs)
 
 
 ########################
