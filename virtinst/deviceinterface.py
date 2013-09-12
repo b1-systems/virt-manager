@@ -64,7 +64,7 @@ class VirtualPort(XMLBuilder):
     instanceid = XMLProperty(xpath="./virtualport/parameters/@instanceid")
 
 
-class FilterRefParam(XMLBuilder):
+class _FilterRefParam(XMLBuilder):
     _XML_ROOT_XPATH = "/domain/devices/interface/filterref/parameter"
     name = XMLProperty("./@name")
     value = XMLProperty("./@value")
