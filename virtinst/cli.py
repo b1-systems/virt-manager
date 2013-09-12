@@ -1603,12 +1603,9 @@ def parse_network(guest, optstring, dev=None, mac=None, filter_refs=None):
     set_param("macaddr", "mac")
     set_param("filterref", "filterref")
     if ref_filter:
-        setattr(dev, "filterref_parameter_name", filter_refs[dev.network][0][0])
-        setattr(dev, "filterref_parameter_value", filter_refs[dev.network][0][1])
-    
+        dev.filterrefs = filter_refs[dev.network]
     if opts:
-        pass
-        #raise ValueError(_("Unknown options %s") % opts.keys())
+        raise ValueError(_("Unknown options %s") % opts.keys())
 
     return dev
 

@@ -22,7 +22,7 @@ import random
 
 from virtinst import util
 from virtinst import VirtualDevice
-from virtinst.xmlbuilder import XMLBuilder, XMLProperty
+from virtinst.xmlbuilder import XMLBuilder, XMLProperty, XMLChildProperty
 
 
 def _random_mac(conn):
@@ -64,6 +64,11 @@ class VirtualPort(XMLBuilder):
     instanceid = XMLProperty(xpath="./virtualport/parameters/@instanceid")
 
 
+class FilterRefParam(XMLBuilder):
+    _XML_ROOT_XPATH = "/domain/devices/interface/filterref/parameter"
+    name = XMLProperty("./@name")
+    value = XMLProperty("./@value")
+    
 class VirtualNetworkInterface(VirtualDevice):
     virtual_device_type = VirtualDevice.VIRTUAL_DEV_NET
 
@@ -199,7 +204,7 @@ class VirtualNetworkInterface(VirtualDevice):
     _XML_PROP_ORDER = [
         "bridge", "network", "source_dev", "source_mode",
         "macaddr", "target_dev", "model", "virtualport",
-        "filterref", "filterref_parameter_name"]
+        "filterref", "_filterrefs"]
 
     type = XMLProperty(xpath="./@type",
                        default_cb=lambda s: s.TYPE_BRIDGE)
@@ -235,9 +240,18 @@ class VirtualNetworkInterface(VirtualDevice):
     model = XMLProperty(xpath="./model/@type")
     target_dev = XMLProperty(xpath="./target/@dev")
     filterref = XMLProperty(xpath="./filterref/@filter")
-    filterref_parameter_name = XMLProperty(xpath="./filterref/parameter/@name")
-    filterref_parameter_value = XMLProperty(xpath="./filterref/parameter/@value")
-        
-
+    
+    def _get_filterref_param(self):
+        return [dev.dev for dev in self._filterrefs]
+    def _set_filterref_param(self, params):
+        for p in params:
+            p_obj = _FilterRefParam(self.conn)
+            p_obj.name = p[0]
+            p_obj.value = p[1]
+            self._add_child(p_obj)
+    _filterrefs = XMLChildProperty(_FilterRefParam)
+    filterrefs = property(_get_filterref_param, _set_filterref_param)
+    
 
 VirtualNetworkInterface.register_type()
+

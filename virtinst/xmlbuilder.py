@@ -569,6 +569,7 @@ class XMLProperty(property):
         in propstore. Setting the actual XML is only done at
         get_xml_config time.
         """
+        print "Use setter for val %s" %val
         if validate and self._validate_cb:
             self._validate_cb(xmlbuilder, val)
         self._nonxml_fset(xmlbuilder,
@@ -603,6 +604,15 @@ class XMLProperty(property):
             if val is True:
                 # Boolean property, creating the node is enough
                 continue
+            print "xxxxxxxx %s" %xpath
+            if type(val) == list:
+                print "I am a list!!! %s" %val
+                for v in val:
+                    node.addContent(util.xml_escape(str(v)))
+                    #xpath = self._xpath_for_setter(xmlbuilder)
+                    #node = _get_xpath_node(xmlbuilder._xmlstate.xml_ctx, xpath)
+                return
+                 
             node.setContent(util.xml_escape(str(val)))
 
 
@@ -720,7 +730,10 @@ class XMLBuilder(object):
         for name, value in ret._propstore.items():
             if type(value) is not list:
                 continue
-            ret._propstore[name] = [obj.copy() for obj in ret._propstore[name]]
+            try:
+                ret._propstore[name] = [obj.copy() for obj in ret._propstore[name]]
+            except:
+                pass
 
         return ret
 
