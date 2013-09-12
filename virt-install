@@ -1047,7 +1047,6 @@ def parse_args():
 def main(conn=None):
     cli.earlyLogging()
     options, cliargs = parse_args()
-    print options
 
     # Default setup options
     options.quiet = options.xmlstep or options.xmlonly or options.quiet

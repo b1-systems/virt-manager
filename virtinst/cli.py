@@ -1088,8 +1088,6 @@ def get_opt_param(opts, dictnames, val=None):
 
 def _build_set_param(inst, opts):
     def _set_param(paramname, keyname, val=None):
-        print "========="
-        print "===>", inst, opts
         val = get_opt_param(opts, keyname, val)
         if val is None:
             return
@@ -1588,10 +1586,8 @@ def parse_network(guest, optstring, dev=None, mac=None, filter_refs=None):
         if opts["mac"] == "RANDOM":
             opts["mac"] = None
 
-    ref_filter = None    
+    ref_filter = None
     if "filterref" in opts and filter_refs[opts['network']]:
-    #    ## do something
-    #    print "Add %s" % filter_refs[opts['network']]
         ref_filter = filter_refs[opts['network']]
 
     set_param = _build_set_param(dev, opts)
