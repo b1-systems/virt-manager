@@ -70,12 +70,12 @@ class XMLParseTest(unittest.TestCase):
         set newval, and make sure it is returned properly
         """
         curval = getattr(obj, param)
-        self.assertEquals(initval, curval)
+        self.assertEqual(initval, curval)
 
         for newval in args:
             setattr(obj, param, newval)
             curval = getattr(obj, param)
-            self.assertEquals(newval, curval)
+            self.assertEqual(newval, curval)
 
     def _make_checker(self, obj):
         def check(name, initval, *args):
@@ -170,7 +170,7 @@ class XMLParseTest(unittest.TestCase):
         check("policy", "force", "disable")
         rmfeat = guest.cpu.features[3]
         guest.cpu.remove_feature(rmfeat)
-        self.assertEquals(rmfeat.get_xml_config(),
+        self.assertEqual(rmfeat.get_xml_config(),
                           """<feature name="foo" policy="bar"/>""")
         guest.cpu.add_feature("addfeature")
 
@@ -307,7 +307,7 @@ class XMLParseTest(unittest.TestCase):
                """<target dev="hda" bus="ide"/></disk>""")
         d = virtinst.VirtualDisk(conn, parsexml=xml)
         self._set_and_check(d, "target", "hda", "hdb")
-        self.assertEquals(xml.replace("hda", "hdb"), d.get_xml_config())
+        self.assertEqual(xml.replace("hda", "hdb"), d.get_xml_config())
 
     def testAlterChars(self):
         guest, outfile = self._get_test_content("change-chars")
@@ -415,10 +415,10 @@ class XMLParseTest(unittest.TestCase):
         check("network", None, "route")
         check("macaddr", "22:11:11:11:11:11", "AA:AA:AA:AA:AA:AA")
         check("filterref", None, "foo")
-        self.assertEquals(dev1.get_source(), None)
+        self.assertEqual(dev1.get_source(), None)
 
         check = self._make_checker(dev2)
-        self.assertEquals(dev2.get_source(), "default")
+        self.assertEqual(dev2.get_source(), "default")
         check("network", "default", None)
         check("bridge", None, "newbr0")
         check("type", "network", "bridge")
@@ -430,14 +430,14 @@ class XMLParseTest(unittest.TestCase):
         check("network", None, "default")
         check("macaddr", "22:22:22:22:22:22")
         check("target_dev", None, "test1")
-        self.assertEquals(dev3.get_source(), "newfoo0")
+        self.assertEqual(dev3.get_source(), "newfoo0")
 
         check = self._make_checker(dev4)
         check("type", "ethernet")
         check("source_dev", "eth0", "eth1")
         check("target_dev", "nic02", "nic03")
         check("target_dev", "nic03", None)
-        self.assertEquals(dev4.get_source(), "eth1")
+        self.assertEqual(dev4.get_source(), "eth1")
 
         check = self._make_checker(dev5)
         check("type", "direct")
@@ -824,7 +824,7 @@ class XMLParseTest(unittest.TestCase):
         fail = [p for p in virtinst.xmlbuilder._allprops
                 if p not in virtinst.xmlbuilder._seenprops]
         try:
-            self.assertEquals([], fail)
+            self.assertEqual([], fail)
         except AssertionError:
             msg = "".join(traceback.format_exc()) + "\n\n"
             msg += ("This means that there are XML properties that are\n"
